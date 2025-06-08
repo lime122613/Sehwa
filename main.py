@@ -13,28 +13,28 @@ st.title("🔌 전국 전기차 충전소 클러스터 지도")
 
 @st.cache_data
 def load_combined_data(url1, url2):
-    df1 = pd.read_csv(url1)
-    df2 = pd.read_csv(url2)
+    df1 = pd.read_csv(url1, low_memory=False)
+    df2 = pd.read_csv(url2, low_memory=False)
     df = pd.concat([df1, df2], ignore_index=True)
 
-    # 위도/경도 분리 및 NaN 제거
+    # 위도경도 분리
     df[['위도', '경도']] = df['위도경도'].str.split(',', expand=True)
+
+    # 숫자형으로 변환 (잘못된 값은 NaN 처리) + NaN 제거
+    df['위도'] = pd.to_numeric(df['위도'], errors='coerce')
+    df['경도'] = pd.to_numeric(df['경도'], errors='coerce')
     df.dropna(subset=['위도', '경도'], inplace=True)
-    df['위도'] = df['위도'].astype(float)
-    df['경도'] = df['경도'].astype(float)
 
     return df
 
 df = load_combined_data(url1, url2)
 
-# 지도 중심을 서울 세화고등학교로 설정
+# 지도 중심: 세화고등학교
 map_center = [37.5009, 126.9872]
 m = folium.Map(location=map_center, zoom_start=13)
 
-# 클러스터 생성
 marker_cluster = MarkerCluster().add_to(m)
 
-# 마커 추가
 for _, row in df.iterrows():
     folium.Marker(
         location=[row['위도'], row['경도']],
@@ -48,5 +48,4 @@ for _, row in df.iterrows():
         icon=folium.Icon(color="green", icon="flash")
     ).add_to(marker_cluster)
 
-# 지도 출력
 st_folium(m, width=900, height=600)
