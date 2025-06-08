@@ -1,29 +1,30 @@
-
-# app.py
 import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
 
-# GitHub Raw CSV URL
-GITHUB_CSV_URL = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/bd11b2729ca1334f903808f24e6fd4b13886a3e9/chargerinfo_sample_small.csv"
+# GitHub Raw URLs
+url1 = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/234c446f6e368583be840f2a93aceea87e112151/chargerinfo_part1.csv"
+url2 = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/234c446f6e368583be840f2a93aceea87e112151/chargerinfo_part2.csv"
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
-st.title("🔌 전기차 충전소 지도 확인")
+st.title("🔌 전국 전기차 충전소 지도")
 
 @st.cache_data
-def load_data(url):
-    df = pd.read_csv(url)
+def load_combined_data(url1, url2):
+    df1 = pd.read_csv(url1)
+    df2 = pd.read_csv(url2)
+    df = pd.concat([df1, df2], ignore_index=True)
     df[['위도', '경도']] = df['위도경도'].str.split(',', expand=True).astype(float)
     return df
 
-df = load_data(GITHUB_CSV_URL)
+df = load_combined_data(url1, url2)
 
-# 지도 중심 (서울 기본값)
-default_lat, default_lng = 37.5665, 126.9780
-m = folium.Map(location=[default_lat, default_lng], zoom_start=13)
+# 지도 중심 (서울 기준)
+map_center = [37.5665, 126.9780]
+m = folium.Map(location=map_center, zoom_start=13)
 
-# 마커 추가
+# 마커 표시
 for _, row in df.iterrows():
     folium.Marker(
         [row['위도'], row['경도']],
@@ -37,4 +38,5 @@ for _, row in df.iterrows():
         icon=folium.Icon(color="green", icon="flash")
     ).add_to(m)
 
+# Streamlit에 지도 출력
 st_folium(m, width=900, height=600)
