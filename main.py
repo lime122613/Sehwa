@@ -30,6 +30,10 @@ def load_combined_data(url1, url2):
     # 대한민국 좌표 범위로 제한 (예외 제거)
     df = df[(df['위도'] > 33) & (df['위도'] < 39) & (df['경도'] > 124) & (df['경도'] < 132)]
 
+    # 주소에서 시도, 구군 추출
+    df['시도'] = df['주소'].str.split().str[0]
+    df['구군'] = df['주소'].str.split().str[1]
+
     return df
 
 # 기본값 설정
