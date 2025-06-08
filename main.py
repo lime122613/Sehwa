@@ -32,44 +32,43 @@ def load_combined_data(url1, url2):
 
     return df
 
-with st.spinner("🚗 충전소 데이터를 불러오는 중입니다..."):
-    df = load_combined_data(url1, url2)
+# 기본값 설정
+기본_시도 = "서울특별시"
+기본_구군 = "서초구"
 
-    # 지역(시도) 필터 추가
-    기본_시도 = "서울특별시"
-    기본_구군 = "서초구"
+# 전체 데이터 미리 불러오지 않고, 지역 선택 후 로드
+st.markdown("### 📍 지역을 먼저 선택해주세요")
+선택한_시도 = st.selectbox("시/도 선택", [기본_시도])
+선택한_구군 = st.selectbox("구/군 선택", [기본_구군])
 
-    if '시도' in df.columns:
-        시도_목록 = sorted(df['시도'].dropna().unique())
-        선택한_시도 = st.selectbox("📍 지역(시/도) 선택", 시도_목록, index=시도_목록.index(기본_시도))
-        df = df[df['시도'] == 선택한_시도]
+# 지역 선택 후에만 데이터 불러오기
+if 선택한_시도 and 선택한_구군:
+    with st.spinner("🚗 충전소 데이터를 불러오는 중입니다..."):
+        df = load_combined_data(url1, url2)
 
-        # 구/군 필터 추가
-        if '구군' in df.columns:
-            구군_목록 = sorted(df['구군'].dropna().unique())
-            선택한_구군 = st.selectbox("📍 구/군 선택", 구군_목록, index=구군_목록.index(기본_구군) if 기본_구군 in 구군_목록 else 0)
-            df = df[df['구군'] == 선택한_구군]
+        # 선택 지역 필터링
+        df = df[(df['시도'] == 선택한_시도) & (df['구군'] == 선택한_구군)]
 
-    # 지도 중심: 서울 세화고등학교
-    map_center = [37.5009, 126.9872]
-    m = folium.Map(location=map_center, zoom_start=13)
+        # 지도 중심: 서울 세화고등학교
+        map_center = [37.5009, 126.9872]
+        m = folium.Map(location=map_center, zoom_start=13)
 
-    # 마커 클러스터 적용
-    marker_cluster = MarkerCluster().add_to(m)
+        # 마커 클러스터 적용
+        marker_cluster = MarkerCluster().add_to(m)
 
-    # 마커 추가
-    for _, row in df.iterrows():
-        folium.Marker(
-            location=[row['위도'], row['경도']],
-            tooltip=row['충전소명'],
-            popup=folium.Popup(f"""
-                <b>{row['충전소명']}</b><br>
-                📍 주소: {row['주소']}<br>
-                ⚡ 충전기 타입: {row['충전기타입']}<br>
-                🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
-            """, max_width=300),
-            icon=folium.Icon(color="green", icon="flash")
-        ).add_to(marker_cluster)
+        # 마커 추가
+        for _, row in df.iterrows():
+            folium.Marker(
+                location=[row['위도'], row['경도']],
+                tooltip=row['충전소명'],
+                popup=folium.Popup(f"""
+                    <b>{row['충전소명']}</b><br>
+                    📍 주소: {row['주소']}<br>
+                    ⚡ 충전기 타입: {row['충전기타입']}<br>
+                    🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
+                """, max_width=300),
+                icon=folium.Icon(color="green", icon="flash")
+            ).add_to(marker_cluster)
 
-    # Streamlit에서 지도 출력
-    st_folium(m, width=900, height=600)
+        # Streamlit에서 지도 출력
+        st_folium(m, width=900, height=600)
