@@ -15,12 +15,18 @@ def load_combined_data(url1, url2):
     df1 = pd.read_csv(url1)
     df2 = pd.read_csv(url2)
     df = pd.concat([df1, df2], ignore_index=True)
-    df[['위도', '경도']] = df['위도경도'].str.split(',', expand=True).astype(float)
+
+    # 위도경도 분리 및 NaN 제거
+    df[['위도', '경도']] = df['위도경도'].str.split(',', expand=True)
+    df.dropna(subset=['위도', '경도'], inplace=True)
+    df['위도'] = df['위도'].astype(float)
+    df['경도'] = df['경도'].astype(float)
+
     return df
 
 df = load_combined_data(url1, url2)
 
-# 지도 중심 (서울 기준)
+# 지도 중심
 map_center = [37.5665, 126.9780]
 m = folium.Map(location=map_center, zoom_start=13)
 
@@ -38,5 +44,4 @@ for _, row in df.iterrows():
         icon=folium.Icon(color="green", icon="flash")
     ).add_to(m)
 
-# Streamlit에 지도 출력
 st_folium(m, width=900, height=600)
