@@ -32,38 +32,39 @@ def load_combined_data(url1, url2):
 
     return df
 
-df = load_combined_data(url1, url2)
+with st.spinner("🚗 충전소 데이터를 불러오는 중입니다..."):
+    df = load_combined_data(url1, url2)
 
-# 지역(시도) 필터 추가
-if '시도' in df.columns:
-    시도_목록 = ["전체 보기"] + sorted(df['시도'].dropna().unique())
-    선택한_시도 = st.selectbox("📍 지역(시/도) 선택", 시도_목록)
-    if 선택한_시도 != "전체 보기":
-        df = df[df['시도'] == 선택한_시도]
+    # 지역(시도) 필터 추가
+    if '시도' in df.columns:
+        시도_목록 = ["전체 보기"] + sorted(df['시도'].dropna().unique())
+        선택한_시도 = st.selectbox("📍 지역(시/도) 선택", 시도_목록)
+        if 선택한_시도 != "전체 보기":
+            df = df[df['시도'] == 선택한_시도]
 
-# 마커 수 제한 (최대 300개)
-df = df.head(300)
+    # 마커 수 제한 (최대 300개)
+    df = df.head(300)
 
-# 지도 중심: 서울 세화고등학교
-map_center = [37.5009, 126.9872]
-m = folium.Map(location=map_center, zoom_start=13)
+    # 지도 중심: 서울 세화고등학교
+    map_center = [37.5009, 126.9872]
+    m = folium.Map(location=map_center, zoom_start=13)
 
-# 마커 클러스터 적용
-marker_cluster = MarkerCluster().add_to(m)
+    # 마커 클러스터 적용
+    marker_cluster = MarkerCluster().add_to(m)
 
-# 마커 추가
-for _, row in df.iterrows():
-    folium.Marker(
-        location=[row['위도'], row['경도']],
-        tooltip=row['충전소명'],
-        popup=folium.Popup(f"""
-            <b>{row['충전소명']}</b><br>
-            📍 주소: {row['주소']}<br>
-            ⚡ 충전기 타입: {row['충전기타입']}<br>
-            🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
-        """, max_width=300),
-        icon=folium.Icon(color="green", icon="flash")
-    ).add_to(marker_cluster)
+    # 마커 추가
+    for _, row in df.iterrows():
+        folium.Marker(
+            location=[row['위도'], row['경도']],
+            tooltip=row['충전소명'],
+            popup=folium.Popup(f"""
+                <b>{row['충전소명']}</b><br>
+                📍 주소: {row['주소']}<br>
+                ⚡ 충전기 타입: {row['충전기타입']}<br>
+                🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
+            """, max_width=300),
+            icon=folium.Icon(color="green", icon="flash")
+        ).add_to(marker_cluster)
 
-# Streamlit에서 지도 출력
-st_folium(m, width=900, height=600)
+    # Streamlit에서 지도 출력
+    st_folium(m, width=900, height=600)
