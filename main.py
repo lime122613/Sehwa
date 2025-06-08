@@ -27,14 +27,14 @@ def load_combined_data(url1, url2):
 
 df = load_combined_data(url1, url2)
 
-# 지도 중심
-map_center = [37.5665, 126.9780]  # 서울
-m = folium.Map(location=map_center, zoom_start=12)
+# 지도 중심을 서울 세화고등학교로 설정
+map_center = [37.5009, 126.9872]
+m = folium.Map(location=map_center, zoom_start=13)
 
 # 클러스터 생성
 marker_cluster = MarkerCluster().add_to(m)
 
-# 마커 추가 (모두 클러스터에 추가)
+# 마커 추가
 for _, row in df.iterrows():
     folium.Marker(
         location=[row['위도'], row['경도']],
@@ -48,5 +48,5 @@ for _, row in df.iterrows():
         icon=folium.Icon(color="green", icon="flash")
     ).add_to(marker_cluster)
 
-# Streamlit 지도 출력
+# 지도 출력
 st_folium(m, width=900, height=600)
