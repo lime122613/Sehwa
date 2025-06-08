@@ -20,21 +20,38 @@ def load_combined_data(url1, url2):
     # 위도경도 분리
     df[['위도', '경도']] = df['위도경도'].str.split(',', expand=True)
 
-    # 숫자형으로 변환 (잘못된 값은 NaN 처리) + NaN 제거
+    # 숫자형 변환 (오류는 NaN으로 처리)
     df['위도'] = pd.to_numeric(df['위도'], errors='coerce')
     df['경도'] = pd.to_numeric(df['경도'], errors='coerce')
+
+    # NaN 제거
     df.dropna(subset=['위도', '경도'], inplace=True)
+
+    # 대한민국 좌표 범위로 제한 (예외 제거)
+    df = df[(df['위도'] > 33) & (df['위도'] < 39) & (df['경도'] > 124) & (df['경도'] < 132)]
 
     return df
 
 df = load_combined_data(url1, url2)
 
-# 지도 중심: 세화고등학교
+# 지역(시도) 필터 추가
+if '시도' in df.columns:
+    시도_목록 = ["전체 보기"] + sorted(df['시도'].dropna().unique())
+    선택한_시도 = st.selectbox("📍 지역(시/도) 선택", 시도_목록)
+    if 선택한_시도 != "전체 보기":
+        df = df[df['시도'] == 선택한_시도]
+
+# 마커 수 제한 (최대 300개)
+df = df.head(300)
+
+# 지도 중심: 서울 세화고등학교
 map_center = [37.5009, 126.9872]
 m = folium.Map(location=map_center, zoom_start=13)
 
+# 마커 클러스터 적용
 marker_cluster = MarkerCluster().add_to(m)
 
+# 마커 추가
 for _, row in df.iterrows():
     folium.Marker(
         location=[row['위도'], row['경도']],
@@ -48,4 +65,5 @@ for _, row in df.iterrows():
         icon=folium.Icon(color="green", icon="flash")
     ).add_to(marker_cluster)
 
+# Streamlit에서 지도 출력
 st_folium(m, width=900, height=600)
