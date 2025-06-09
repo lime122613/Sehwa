@@ -39,8 +39,8 @@ def load_combined_data(url1, url2):
 # 충전기 타입 -> 차량 매핑 함수
 def 충전가능차량(타입문자열):
     mapping = {
-        "DC차데모": "일본차(리프 등)",
         "AC완속": "국산차(코나, 니로 등)",
+        "DC차데모": "일본차(리프 등)",
         "DC콤보": "현대기아차(E-GMP), 테슬라 CCS1 어댑터",
         "DC차데모+AC3상": "일본차 및 국산차 일부",
         "DC차데모+DC콤보": "리프 + 현대기아차",
@@ -107,12 +107,25 @@ with 탭2:
             "DC차데모+AC3상+DC콤보"
         ],
         "충전 가능 차량": [
-            "국산차(코나, 니로 등)",
-            "일본차(리프 등)",
-            "현대기아차(E-GMP), 테슬라 CCS1 어댑터",
-            "일본차 및 국산차 일부",
-            "리프 + 현대기아차",
-            "모든 충전규격 호환"
+            "국산차 (현대 코나EV, 기아 니로EV 등)",
+            "일본차 (닛산 리프 등)",
+            "현대 아이오닉5, EV6, 제네시스 GV60, 테슬라 CCS1 어댑터 보유 시",
+            "일본차 및 AC3상 호환 국산차",
+            "닛산 리프 + 현대기아차(E-GMP)",
+            "모든 주요 충전 규격 지원 차량"
+        ],
+        "대표 차종 이미지": [
+            "![코나](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Hyundai_Kona_EV_IMG_20201119_152853.jpg/320px-Hyundai_Kona_EV_IMG_20201119_152853.jpg)",
+            "![리프](https://upload.wikimedia.org/wikipedia/commons/thumb/f/fb/2018_Nissan_Leaf_Tekna_Front.jpg/320px-2018_Nissan_Leaf_Tekna_Front.jpg)",
+            "![EV6](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/2021_Kia_EV6_GT-Line_S.jpg/320px-2021_Kia_EV6_GT-Line_S.jpg)",
+            "-",
+            "-",
+            "-"
         ]
     })
-    st.table(설명표)
+    st.markdown("""아래 표를 통해 충전기 타입별로 어떤 차량이 충전 가능한지 확인해보세요:""")
+    st.write(설명표.drop(columns=["대표 차종 이미지"]))
+    for i, row in 설명표.iterrows():
+        st.markdown(f"#### {row['충전기 타입']}")
+        st.markdown(f"🚘 {row['충전 가능 차량']}")
+        st.markdown(row['대표 차종 이미지'])
