@@ -9,7 +9,7 @@ url1 = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/234c446f6e368583be840f
 url2 = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/234c446f6e368583be840f2a93aceea87e112151/chargerinfo_part2.csv"
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
-st.title("🔌 전국 전기차 충전소 클러스터 지도")
+st.title("🔌 전국 전기차 충전소 지도")
 
 @st.cache_data
 def load_combined_data(url1, url2):
