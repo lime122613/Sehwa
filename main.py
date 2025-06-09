@@ -36,12 +36,30 @@ def load_combined_data(url1, url2):
 
     return df
 
+# 충전기 타입 -> 차량 매핑 함수
+def 충전가능차량(타입문자열):
+    mapping = {
+        "DC차데모": "일본차(리프 등)",
+        "AC완속": "국산차(코나, 니로 등)",
+        "DC콤보": "현대기아차(E-GMP), 테슬라 CCS1 어댑터",
+        "DC차데모+AC3상": "일본차 및 국산차 일부",
+        "DC차데모+DC콤보": "리프 + 현대기아차",
+        "DC차데모+AC3상+DC콤보": "모든 충전규격 호환"
+    }
+    if not isinstance(타입문자열, str):
+        return "정보 없음"
+
+    차량리스트 = []
+    for key, value in mapping.items():
+        if key in 타입문자열:
+            차량리스트.append(value)
+    return ', '.join(sorted(set(차량리스트))) if 차량리스트 else "정보 없음"
+
 # 전체 데이터 미리 불러오지 않고, 지역 선택 후 로드
 st.markdown("### 📍 지역을 먼저 선택해주세요")
 
 with st.spinner("🔍 데이터 준비 중..."):
     df = load_combined_data(url1, url2)
-      # 실제 컬럼명 출력
     시도목록 = sorted(df['시도'].dropna().unique())
 
 선택한_시도 = st.selectbox("시/도 선택", 시도목록, index=시도목록.index("서울특별시"))
@@ -66,6 +84,8 @@ if 선택한_시도 and 선택한_구군:
                     <b>{row['충전소명']}</b><br>
                     📍 주소: {row['주소']}<br>
                     🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
+                    🔋 충전기 타입: {row.get('충전기타입', '정보 없음')}<br>
+                    🚘 가능 차량: {충전가능차량(row.get('충전기타입'))}
                 """, max_width=300),
                 icon=folium.Icon(color="green", icon="flash")
             ).add_to(marker_cluster)
