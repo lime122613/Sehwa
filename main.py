@@ -41,6 +41,7 @@ st.markdown("### 📍 지역을 먼저 선택해주세요")
 
 with st.spinner("🔍 데이터 준비 중..."):
     df = load_combined_data(url1, url2)
+    st.write(df.columns)  # 실제 컬럼명 출력
     시도목록 = sorted(df['시도'].dropna().unique())
 
 선택한_시도 = st.selectbox("시/도 선택", 시도목록, index=시도목록.index("서울특별시"))
