@@ -9,7 +9,7 @@ url1 = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/234c446f6e368583be840f
 url2 = "https://raw.githubusercontent.com/ZackWoo05/Sehwa/234c446f6e368583be840f2a93aceea87e112151/chargerinfo_part2.csv"
 
 st.set_page_config(page_title="전기차 충전소 지도", layout="wide")
-st.title("🔌 전국 전기차 충전소 지도")
+st.title("🔌 전국 전기차 충전소 클러스터 지도")
 
 @st.cache_data
 def load_combined_data(url1, url2):
@@ -56,38 +56,63 @@ def 충전가능차량(타입문자열):
     return ', '.join(sorted(set(차량리스트))) if 차량리스트 else "정보 없음"
 
 # 전체 데이터 미리 불러오지 않고, 지역 선택 후 로드
-st.markdown("### 📍 지역을 먼저 선택해주세요")
-
 with st.spinner("🔍 데이터 준비 중..."):
     df = load_combined_data(url1, url2)
+
+탭1, 탭2 = st.tabs(["📍 지도 보기", "🚘 차량별 충전기 타입 설명"])
+
+with 탭1:
+    st.markdown("### 지역을 먼저 선택해주세요")
     시도목록 = sorted(df['시도'].dropna().unique())
+    선택한_시도 = st.selectbox("시/도 선택", 시도목록, index=시도목록.index("서울특별시"))
 
-선택한_시도 = st.selectbox("시/도 선택", 시도목록, index=시도목록.index("서울특별시"))
-선택한_구군 = None
-if 선택한_시도:
-    구군목록 = sorted(df[df['시도'] == 선택한_시도]['구군'].dropna().unique())
-    선택한_구군 = st.selectbox("구/군 선택", 구군목록, index=구군목록.index("서초구") if "서초구" in 구군목록 else 0)
+    선택한_구군 = None
+    if 선택한_시도:
+        구군목록 = sorted(df[df['시도'] == 선택한_시도]['구군'].dropna().unique())
+        선택한_구군 = st.selectbox("구/군 선택", 구군목록, index=구군목록.index("서초구") if "서초구" in 구군목록 else 0)
 
-if 선택한_시도 and 선택한_구군:
-    with st.spinner("🚗 충전소 데이터를 불러오는 중입니다..."):
-        df_filtered = df[(df['시도'] == 선택한_시도) & (df['구군'] == 선택한_구군)]
+    if 선택한_시도 and 선택한_구군:
+        with st.spinner("🚗 충전소 데이터를 불러오는 중입니다..."):
+            df_filtered = df[(df['시도'] == 선택한_시도) & (df['구군'] == 선택한_구군)]
 
-        map_center = [37.5009, 126.9872]  # 세화고등학교 기준
-        m = folium.Map(location=map_center, zoom_start=13)
-        marker_cluster = MarkerCluster().add_to(m)
+            map_center = [37.5009, 126.9872]  # 세화고등학교 기준
+            m = folium.Map(location=map_center, zoom_start=13)
+            marker_cluster = MarkerCluster().add_to(m)
 
-        for _, row in df_filtered.iterrows():
-            folium.Marker(
-                location=[row['위도'], row['경도']],
-                tooltip=row['충전소명'],
-                popup=folium.Popup(f"""
-                    <b>{row['충전소명']}</b><br>
-                    📍 주소: {row['주소']}<br>
-                    🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
-                    🔋 충전기 타입: {row.get('충전기타입', '정보 없음')}<br>
-                    🚘 가능 차량: {충전가능차량(row.get('충전기타입'))}
-                """, max_width=300),
-                icon=folium.Icon(color="green", icon="flash")
-            ).add_to(marker_cluster)
+            for _, row in df_filtered.iterrows():
+                folium.Marker(
+                    location=[row['위도'], row['경도']],
+                    tooltip=row['충전소명'],
+                    popup=folium.Popup(f"""
+                        <b>{row['충전소명']}</b><br>
+                        📍 주소: {row['주소']}<br>
+                        🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
+                        🔋 충전기 타입: {row.get('충전기타입', '정보 없음')}<br>
+                        🚘 가능 차량: {충전가능차량(row.get('충전기타입'))}
+                    """, max_width=300),
+                    icon=folium.Icon(color="green", icon="flash")
+                ).add_to(marker_cluster)
 
-        st_folium(m, width=900, height=600)
+            st_folium(m, width=900, height=600)
+
+with 탭2:
+    st.markdown("## 🔍 충전기 타입별 충전 가능 차량 안내")
+    설명표 = pd.DataFrame({
+        "충전기 타입": [
+            "AC완속",
+            "DC차데모",
+            "DC콤보",
+            "DC차데모+AC3상",
+            "DC차데모+DC콤보",
+            "DC차데모+AC3상+DC콤보"
+        ],
+        "충전 가능 차량": [
+            "국산차(코나, 니로 등)",
+            "일본차(리프 등)",
+            "현대기아차(E-GMP), 테슬라 CCS1 어댑터",
+            "일본차 및 국산차 일부",
+            "리프 + 현대기아차",
+            "모든 충전규격 호환"
+        ]
+    })
+    st.table(설명표)
