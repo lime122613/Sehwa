@@ -55,12 +55,12 @@ if 선택한_시도 and 선택한_구군:
 
         grouped = df_filtered.groupby(['위도', '경도', '충전소명', '주소'])
         summary_df = grouped.agg({
-            '충전기 타입': lambda x: ', '.join(sorted(set(x))),
+            '충전기타입': lambda x: ', '.join(sorted(set(x))),
             '시설구분(대)': 'first',
             '시설구분(소)': 'first',
-            '충전기 ID': 'count'
+            '충전기ID': 'count'
         }).reset_index()
-        summary_df.rename(columns={'충전기 ID': '충전기수'}, inplace=True)
+        summary_df.rename(columns={'충전기ID': '충전기수'}, inplace=True)
 
         map_center = [37.5009, 126.9872]  # 세화고등학교 기준
         m = folium.Map(location=map_center, zoom_start=13)
@@ -73,7 +73,7 @@ if 선택한_시도 and 선택한_구군:
                 popup=folium.Popup(f"""
                     <b>{row['충전소명']}</b><br>
                     📍 주소: {row['주소']}<br>
-                    ⚡ 충전기 타입: {row['충전기 타입']}<br>
+                    ⚡ 충전기 타입: {row['충전기타입']}<br>
                     🔢 충전기 수: {row['충전기수']}대<br>
                     🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
                 """, max_width=300),
