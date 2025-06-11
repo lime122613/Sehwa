@@ -75,13 +75,14 @@ with 탭1:
         with st.spinner("🚗 충전소 데이터를 불러오는 중입니다..."):
             df_filtered = df[(df['시도'] == 선택한_시도) & (df['구군'] == 선택한_구군)]
 
-            # 중심 좌표를 선택된 지역의 평균 위도/경도로 설정
-            map_center = [
-                df_filtered['위도'].mean(),
-                df_filtered['경도'].mean()
-            ]
+            if not df_filtered.empty:
+                # ⚠️ 중심 좌표를 해당 지역 첫 번째 충전소 위치로 설정
+                map_center = [df_filtered.iloc[0]['위도'], df_filtered.iloc[0]['경도']]
+            else:
+                # fallback (세화고 위치)
+                map_center = [37.5009, 126.9872]
 
-            m = folium.Map(location=map_center, zoom_start=13)
+            m = folium.Map(location=map_center, zoom_start=14)
             marker_cluster = MarkerCluster().add_to(m)
 
             for _, row in df_filtered.iterrows():
@@ -99,6 +100,7 @@ with 탭1:
                 ).add_to(marker_cluster)
 
             st_folium(m, width=900, height=600)
+
 
 
 with 탭2:
