@@ -81,7 +81,7 @@ with 탭1:
                 map_center = [37.5009, 126.9872]
 
             # 👉 지도와 표를 나란히 출력할 공간 나누기
-            col1, col2 = st.columns([3, 1], gap="small"))
+            col1, col2 = st.columns([3, 1], gap="small")
 
             with col1:
                 m = folium.Map(location=map_center, zoom_start=14)
