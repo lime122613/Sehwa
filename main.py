@@ -76,30 +76,40 @@ with 탭1:
             df_filtered = df[(df['시도'] == 선택한_시도) & (df['구군'] == 선택한_구군)]
 
             if not df_filtered.empty:
-                # ⚠️ 중심 좌표를 해당 지역 첫 번째 충전소 위치로 설정
                 map_center = [df_filtered.iloc[0]['위도'], df_filtered.iloc[0]['경도']]
             else:
-                # fallback (세화고 위치)
                 map_center = [37.5009, 126.9872]
 
-            m = folium.Map(location=map_center, zoom_start=14)
-            marker_cluster = MarkerCluster().add_to(m)
+            # 👉 지도와 표를 나란히 출력할 공간 나누기
+            col1, col2 = st.columns([2, 1])
 
-            for _, row in df_filtered.iterrows():
-                folium.Marker(
-                    location=[row['위도'], row['경도']],
-                    tooltip=row['충전소명'],
-                    popup=folium.Popup(f"""
-                        <b>{row['충전소명']}</b><br>
-                        📍 주소: {row['주소']}<br>
-                        🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
-                        🔋 충전기 타입: {row.get('충전기타입', '정보 없음')}<br>
-                        🚘 가능 차량: {충전가능차량(row.get('충전기타입'))}
-                    """, max_width=300),
-                    icon=folium.Icon(color="green", icon="flash")
-                ).add_to(marker_cluster)
+            with col1:
+                m = folium.Map(location=map_center, zoom_start=14)
+                marker_cluster = MarkerCluster().add_to(m)
 
-            st_folium(m, width=900, height=600)
+                for _, row in df_filtered.iterrows():
+                    folium.Marker(
+                        location=[row['위도'], row['경도']],
+                        tooltip=row['충전소명'],
+                        popup=folium.Popup(f"""
+                            <b>{row['충전소명']}</b><br>
+                            📍 주소: {row['주소']}<br>
+                            🏢 시설: {row['시설구분(대)']} - {row['시설구분(소)']}<br>
+                            🔋 충전기 타입: {row.get('충전기타입', '정보 없음')}<br>
+                            🚘 가능 차량: {충전가능차량(row.get('충전기타입'))}
+                        """, max_width=300),
+                        icon=folium.Icon(color="green", icon="flash")
+                    ).add_to(marker_cluster)
+
+                st_folium(m, width=800, height=600)
+
+            with col2:
+                st.markdown("#### 📋 충전소 목록")
+                st.dataframe(
+                    df_filtered[['충전소명', '주소', '충전기타입', '시설구분(대)']].reset_index(drop=True),
+                    use_container_width=True,
+                    height=600
+                )
 
 
 
